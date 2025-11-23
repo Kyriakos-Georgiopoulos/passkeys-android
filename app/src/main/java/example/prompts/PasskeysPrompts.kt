@@ -718,7 +718,10 @@ private fun PasskeysFinalHero(
             pauseMs = 800,
             easing = LinearEasing,
             stopSignal = stop,
-            stopAtEndOfCurrentCycle = true
+            stopAtEndOfCurrentCycle = true,
+            onCycle = {
+                stop = true
+            }
         )
     }
 }

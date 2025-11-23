@@ -132,47 +132,43 @@ private const val CARD_HEIGHT_FRACTION = 0.55f
 private val Faqs: List<Faq> = listOf(
     Faq(
         "Do I need backend changes to support passkeys?",
-        "Yes. Your backend must support WebAuthn: generate a challenge, store the user’s public key, and verify the signed challenge during login."
+        "Yes. Your backend must support WebAuthn: create a challenge, store one or more public keys for each user, and verify the signed challenge during login."
     ),
     Faq(
-        "Which Android API should I use for passkeys?",
-        "Use Credential Manager. It provides a single API for passwords, passkeys, and federated logins."
+        "What if the user loses or replaces their phone?",
+        "If their passkeys are synced with Google Password Manager, they show up on the new device automatically. If not, the user signs in with a fallback method and creates a new passkey."
     ),
     Faq(
-        "What happens if the user loses their phone?",
-        "If passkeys are synced with Google Password Manager or iCloud Keychain, they appear automatically on the new device. If not, the user must sign in using another method and register a new passkey."
+        "Do passkeys work across Android, iOS, and the web?",
+        "Yes. Passkeys follow the WebAuthn standard and sync through Google Password Manager or iCloud. Cross-device sign-in also works using QR code and Bluetooth."
     ),
     Faq(
-        "Do passkeys work across Android and iOS?",
-        "Yes. Passkeys sync via Google Password Manager or iCloud Keychain. Cross-device sign-in also works using QR code and Bluetooth."
-    ),
-    Faq(
-        "Can passkeys be phished or stolen?",
-        "They’re highly resistant to phishing. Private keys never leave the device and only work with the correct domain."
-    ),
-    Faq(
-        "How do users move passkeys to a new phone?",
-        "Passkeys sync automatically through Google Password Manager or iCloud Keychain. No export or manual transfer is required."
-    ),
-    Faq(
-        "Do I still need passwords in my Android app?",
-        "For now, yes. Passkeys should be the default, but a 'Use password instead' option is still needed for older devices and account recovery."
-    ),
-    Faq(
-        "Can users have multiple passkeys for the same account?",
-        "Yes. Each device creates its own key pair. Your backend should allow and store multiple public keys per user."
-    ),
-    Faq(
-        "How do I revoke a passkey for a device?",
-        "Remove that device’s public key from your backend. The passkey will stop working, but you cannot remotely delete it from Google Password Manager."
-    ),
-    Faq(
-        "How do I test passkeys during development?",
-        "Use a real device or emulator with HTTPS, Chrome, and Play Services. Localhost doesn’t work—use a real domain or an ngrok tunnel."
+        "Can passkeys be phished?",
+        "They’re extremely hard to phish. The private key never leaves the device and only works for the correct domain."
     ),
     Faq(
         "Where are passkeys stored on Android?",
-        "They’re stored in Google Password Manager, protected by biometric authentication and secure hardware like the device’s TEE (Trusted Execution Environment)."
+        "In Google Password Manager, protected by the user’s screen lock and secure hardware like the device’s TEE (Trusted Execution Environment) or StrongBox."
+    ),
+    Faq(
+        "Do I still need passwords in my app?",
+        "For now, yes. Passkeys should be the default option, but you still need a 'Use password instead' fallback for older devices and recovery."
+    ),
+    Faq(
+        "How do I migrate existing users to passkeys?",
+        "Let them sign in with their current method, then offer a 'Create passkey' button. After that, prefer passkey sign-in and keep the old method as backup."
+    ),
+    Faq(
+        "Can users have multiple passkeys?",
+        "Yes. Each device creates its own key pair. Your backend should allow storing multiple public keys per user."
+    ),
+    Faq(
+        "How do I revoke a passkey?",
+        "Remove that device’s public key from your backend. The passkey will stop working for that device."
+    ),
+    Faq(
+        "How do I test passkeys?",
+        "Use a real device or emulator with HTTPS. Localhost doesn’t work—use a real domain or an ngrok tunnel."
     )
 )
 

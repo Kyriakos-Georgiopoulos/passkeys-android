@@ -10,13 +10,11 @@
 
 ## 🤝 Connect & Share Your Feedback
 
-<div align="center">
+### 👤 Connect with me on LinkedIn
+<img src="assets/linkedin-qr.png" alt="LinkedIn QR Code" width="200"/> 
 
-| 👤 Connect with me on LinkedIn | 💬 Share Your Feedback |
-|:---:|:---:|
-| <img src="assets/linkedin-qr.png" alt="LinkedIn QR Code" width="200"/> | <img src="assets/feedback-qr.png" alt="Feedback Form QR Code" width="200"/> |
-
-</div>
+### 💬 Share Your Feedback
+<img src="assets/feedback-qr.png" alt="Feedback Form QR Code" width="200"/>
 
 ---
 

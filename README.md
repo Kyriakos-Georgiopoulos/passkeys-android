@@ -11,7 +11,7 @@
 ## 🤝 Connect & Share Your Feedback
 
 ### 👤 Connect with me on LinkedIn
-<img src="assets/linkedin-qr.png" alt="LinkedIn QR Code" width="200"/>
+<img src="assets/linkedin_qr_updated.png" alt="LinkedIn QR Code" width="200"/>
 
 ---
 

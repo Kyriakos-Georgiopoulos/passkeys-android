@@ -11,10 +11,7 @@
 ## 🤝 Connect & Share Your Feedback
 
 ### 👤 Connect with me on LinkedIn
-<img src="assets/linkedin-qr.png" alt="LinkedIn QR Code" width="200"/> 
-
-### 💬 Share Your Feedback
-<img src="assets/feedback-qr.png" alt="Feedback Form QR Code" width="200"/>
+<img src="assets/linkedin-qr.png" alt="LinkedIn QR Code" width="200"/>
 
 ---
 
@@ -343,4 +340,7 @@ This is a conference demo project, but contributions are welcome! If you find is
 ---
 
 **Made with ❤️ for Droidcon Abu Dhabi 2025**
+
+### 💬 Share Your Feedback
+<img src="assets/feedback-qr.png" alt="Feedback Form QR Code" width="200"/>
 

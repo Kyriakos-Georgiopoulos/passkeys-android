@@ -17,12 +17,12 @@
 
 ## 📱 About This Demo
 
-This is the companion repository for my Droidcon Abu Dhabi 2026 presentation on implementing Passkeys in Android. Unlike traditional talks, this session features live demonstrations, real code, and practical solutions to challenges you'll actually face when implementing passkeys.
+This is the companion repository for my Droidcon Abu Dhabi 2025 presentation on implementing Passkeys in Android. Unlike traditional talks, this session features live demonstrations, real code, and practical solutions to challenges you'll actually face when implementing passkeys.
 
 The project showcases a complete passkey implementation including registration, authentication, WebView integration, and Digital Asset Links configuration—with all the lessons learned along the way.
 
 **Presenter:** Kyriakos Georgiopoulos  
-**Event:** Droidcon Abu Dhabi 2026  
+**Event:** Droidcon Abu Dhabi 2025  
 **Format:** Live Demo (No Slides)
 
 ---

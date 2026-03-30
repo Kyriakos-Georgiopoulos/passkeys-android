@@ -9,7 +9,7 @@ package example.password
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,6 +36,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -50,6 +51,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -63,6 +65,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -70,6 +73,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -176,15 +180,20 @@ fun WrongPasswordScreen(
 
     Scaffold { innerPadding ->
         ApplyStatusBar(
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f),
+            color = Color.Transparent, // Let the atmospheric gradient shine through
             darkIcons = true
         )
 
-        val bg = Brush.verticalGradient(
-            listOf(
+        // 2026 update: A softer, angled gradient that feels more atmospheric
+        val bg = Brush.linearGradient(
+            colors = listOf(
                 MaterialTheme.colorScheme.surface,
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
                 MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-            )
+            ),
+            start = Offset(0f, 0f),
+            end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
         )
 
         BoxWithConstraints(
@@ -240,7 +249,7 @@ fun WrongPasswordScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 24.dp)
+                    .padding(horizontal = 32.dp) // More breathable horizontal margins
                     .offset(x = shakeX.value.dp)
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -248,7 +257,10 @@ fun WrongPasswordScreen(
             ) {
                 Text(
                     text = "Welcome back",
-                    style = MaterialTheme.typography.headlineLarge,
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontWeight = FontWeight.ExtraBold, // Punchier modern typography
+                        letterSpacing = (-0.5).sp
+                    ),
                     modifier = Modifier.dropTransform(titleDrop.value, titleRotation.value)
                 )
                 Spacer(Modifier.height(8.dp))
@@ -257,9 +269,9 @@ fun WrongPasswordScreen(
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier
                         .dropTransform(titleDrop.value, titleRotation.value)
-                        .alpha(0.8f)
+                        .alpha(0.6f) // Softer subtitle contrast
                 )
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(48.dp)) // Increased whitespace to let inputs breathe
 
                 OutlinedTextField(
                     value = username,
@@ -267,12 +279,13 @@ fun WrongPasswordScreen(
                     label = { Text("Username") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                    shape = RoundedCornerShape(24.dp), // Deep pill corners
                     modifier = Modifier
                         .fillMaxWidth()
                         .dropTransform(userDrop.value, userRotation.value)
                 )
 
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(16.dp)) // slightly more spacing between fields
 
                 OutlinedTextField(
                     value = password,
@@ -297,6 +310,7 @@ fun WrongPasswordScreen(
                     visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = { submit() }),
+                    shape = RoundedCornerShape(24.dp), // Deep pill corners
                     trailingIcon = {
                         IconButton(onClick = { showPassword = !showPassword }) {
                             Icon(
@@ -308,7 +322,7 @@ fun WrongPasswordScreen(
                     supportingText = {
                         when {
                             lockedOut -> {}
-                            isError -> Text("Wrong password.")
+                            isError -> Text("Wrong password.", fontWeight = FontWeight.Medium)
                             attempts > 0 && password.isNotEmpty() -> Text(pepTalks[pepIndex])
                         }
                     },
@@ -325,23 +339,28 @@ fun WrongPasswordScreen(
                         .dropTransform(fieldDrop.value, fieldRotation.value)
                 )
 
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(32.dp)) // More space before the action button
 
                 Button(
                     onClick = { submit() },
                     modifier = Modifier
                         .fillMaxWidth()
+                        .height(56.dp) // Taller, more tactile modern touch target
                         .dropTransform(buttonDrop.value, buttonRotation.value),
+                    shape = RoundedCornerShape(20.dp),
                     enabled = !lockedOut
-                ) { Text("Sign in") }
+                ) {
+                    Text("Sign in", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
 
                 if (attempts > 0 && (showError || lockedOut)) {
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(24.dp))
                     Text(
                         text = currentQuote,
                         color = if (!lockedOut) errorColor else MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center,
-                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 15.sp,
                         modifier = Modifier
                             .dropTransform(quoteDrop.value, quoteRotation.value)
                             .padding(horizontal = 8.dp)
@@ -352,34 +371,45 @@ fun WrongPasswordScreen(
                 }
             }
 
+            // 2026 update: The CTA now drops in as a sleek floating "Dynamic Island" style surface
             AnimatedVisibility(
                 visible = lockedOut,
                 modifier = Modifier.align(Alignment.TopCenter)
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                Surface(
                     modifier = Modifier
                         .padding(top = 48.dp, start = 24.dp, end = 24.dp)
-                        .fillMaxWidth()
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(32.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
+                    tonalElevation = 8.dp,
+                    shadowElevation = 12.dp
                 ) {
-                    Text(
-                        text = "Too many attempts",
-                        style = MaterialTheme.typography.headlineSmall,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        text = "Please restore your password via email.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.alpha(0.9f)
-                    )
-                    Spacer(Modifier.height(12.dp))
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(vertical = 24.dp, horizontal = 16.dp)
+                    ) {
+                        Text(
+                            text = "Too many attempts",
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = "Please restore your password via email.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.alpha(0.8f)
+                        )
+                        Spacer(Modifier.height(20.dp))
 
-                    FilledTonalButton(onClick = {
-                        onNavigationEvent(AppScreen.PasskeyRegistration)
-                    }) {
-                        Text("Restore via email")
+                        FilledTonalButton(
+                            onClick = { onNavigationEvent(AppScreen.PasskeyRegistration) },
+                            modifier = Modifier.height(48.dp),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text("Restore via email", fontWeight = FontWeight.SemiBold)
+                        }
                     }
                 }
             }

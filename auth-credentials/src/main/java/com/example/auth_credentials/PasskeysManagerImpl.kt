@@ -33,8 +33,28 @@ internal class PasskeysManagerImpl @Inject constructor(
     @param:ApplicationContext private val applicationContext: Context
 ) : PasskeysManager {
 
+    /**
+     * Implementation of [PasskeysManager] to handle Passkey registration and sign-in.
+     *
+     * ### What changed in Android 14 (API 34)?
+     * - **Prior to Android 14 (API 28 - 33):** Passkey support is provided exclusively through
+     * Google Play Services. This means Google Password Manager is the only provider that
+     * can store and sync passkeys natively on these devices.
+     *
+     * - **Android 14 and above:** Android introduced the `android.credentials` system framework API.
+     * This opens up the ecosystem, allowing users to select compatible **third-party password
+     * managers** (like 1Password, Bitwarden, Dashlane, etc.) as their default passkey provider
+     * alongside or instead of Google Password Manager.
+     */
     private val isAvailable by lazy(LazyThreadSafetyMode.PUBLICATION) {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE || isPlayServicesAvailable(applicationContext)
+        // Passkeys strictly require Android 9 (API 28) or higher.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+            false
+        } else {
+            // Available if Android 14+ (native framework support)
+            // OR if Play Services is installed (Android 9-13 backport)
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE || isPlayServicesAvailable(applicationContext)
+        }
     }
 
     @SuppressLint("PublicKeyCredential")

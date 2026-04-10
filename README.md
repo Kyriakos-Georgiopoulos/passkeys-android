@@ -1,6 +1,6 @@
 # 🔐 Passkeys Implementation Demo
 
-**Live Demo Companion for Droidcon Abu Dhabi 2025**
+**Live Demo Companion for Droidcon**
 
 > _"The biggest step forward in mobile authentication since... authentication."_
 
@@ -339,8 +339,4 @@ This is a conference demo project, but contributions are welcome! If you find is
 
 ---
 
-**Made with ❤️ for Droidcon Abu Dhabi 2025**
-
-### 💬 Share Your Feedback
-<img src="assets/feedback-qr.png" alt="Feedback Form QR Code" width="200"/>
-
+**Made with ❤️ for Droidcon**

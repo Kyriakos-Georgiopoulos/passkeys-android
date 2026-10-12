@@ -23,7 +23,6 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.keyframes
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -41,18 +40,17 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Button
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -64,9 +62,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
@@ -151,6 +146,17 @@ fun WrongPasswordScreen(
     val isError = showError && !lockedOut
     val errorColor = MaterialTheme.colorScheme.error
 
+    val fieldShape = RoundedCornerShape(20.dp)
+    val fieldColors = TextFieldDefaults.colors(
+        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        errorContainerColor = MaterialTheme.colorScheme.errorContainer,
+        focusedIndicatorColor = Color.Transparent,
+        unfocusedIndicatorColor = Color.Transparent,
+        errorIndicatorColor = Color.Transparent,
+        errorTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+
     fun submit() {
         val next = attempts + 1
         if (next >= 3) focus.clearFocus()
@@ -178,28 +184,15 @@ fun WrongPasswordScreen(
         }
     }
 
-    Scaffold { innerPadding ->
+    Scaffold(containerColor = MaterialTheme.colorScheme.surface) { innerPadding ->
         ApplyStatusBar(
-            color = Color.Transparent, // Let the atmospheric gradient shine through
+            color = Color.Transparent,
             darkIcons = true
-        )
-
-        // 2026 update: A softer, angled gradient that feels more atmospheric
-        val bg = Brush.linearGradient(
-            colors = listOf(
-                MaterialTheme.colorScheme.surface,
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-            ),
-            start = Offset(0f, 0f),
-            end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
         )
 
         BoxWithConstraints(
             modifier = modifier
                 .fillMaxSize()
-                .background(bg)
                 .padding(innerPadding)
                 .imePadding()
                 .navigationBarsPadding()
@@ -249,7 +242,7 @@ fun WrongPasswordScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 32.dp) // More breathable horizontal margins
+                    .padding(horizontal = 32.dp)
                     .offset(x = shakeX.value.dp)
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -258,8 +251,8 @@ fun WrongPasswordScreen(
                 Text(
                     text = "Welcome back",
                     style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.ExtraBold, // Punchier modern typography
-                        letterSpacing = (-0.5).sp
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = (-0.25).sp
                     ),
                     modifier = Modifier.dropTransform(titleDrop.value, titleRotation.value)
                 )
@@ -267,27 +260,27 @@ fun WrongPasswordScreen(
                 Text(
                     text = "Sign in to continue",
                     style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier
-                        .dropTransform(titleDrop.value, titleRotation.value)
-                        .alpha(0.6f) // Softer subtitle contrast
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.dropTransform(titleDrop.value, titleRotation.value)
                 )
-                Spacer(Modifier.height(48.dp)) // Increased whitespace to let inputs breathe
+                Spacer(Modifier.height(40.dp))
 
-                OutlinedTextField(
+                TextField(
                     value = username,
                     onValueChange = { username = it },
                     label = { Text("Username") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                    shape = RoundedCornerShape(24.dp), // Deep pill corners
+                    shape = fieldShape,
+                    colors = fieldColors,
                     modifier = Modifier
                         .fillMaxWidth()
                         .dropTransform(userDrop.value, userRotation.value)
                 )
 
-                Spacer(Modifier.height(16.dp)) // slightly more spacing between fields
+                Spacer(Modifier.height(12.dp))
 
-                OutlinedTextField(
+                TextField(
                     value = password,
                     onValueChange = {
                         password = it
@@ -310,11 +303,11 @@ fun WrongPasswordScreen(
                     visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = { submit() }),
-                    shape = RoundedCornerShape(24.dp), // Deep pill corners
+                    shape = fieldShape,
                     trailingIcon = {
                         IconButton(onClick = { showPassword = !showPassword }) {
                             Icon(
-                                imageVector = if (showPassword) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                                imageVector = if (showPassword) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
                                 contentDescription = if (showPassword) "Hide password" else "Show password"
                             )
                         }
@@ -326,41 +319,32 @@ fun WrongPasswordScreen(
                             attempts > 0 && password.isNotEmpty() -> Text(pepTalks[pepIndex])
                         }
                     },
-                    colors = if (isError) {
-                        OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = errorColor,
-                            unfocusedBorderColor = errorColor.copy(alpha = 0.6f),
-                            cursorColor = errorColor,
-                            focusedLabelColor = errorColor
-                        )
-                    } else OutlinedTextFieldDefaults.colors(),
+                    colors = fieldColors,
                     modifier = Modifier
                         .fillMaxWidth()
                         .dropTransform(fieldDrop.value, fieldRotation.value)
                 )
 
-                Spacer(Modifier.height(32.dp)) // More space before the action button
+                Spacer(Modifier.height(24.dp))
 
                 Button(
                     onClick = { submit() },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp) // Taller, more tactile modern touch target
+                        .height(56.dp)
                         .dropTransform(buttonDrop.value, buttonRotation.value),
-                    shape = RoundedCornerShape(20.dp),
                     enabled = !lockedOut
                 ) {
-                    Text("Sign in", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("Sign in", style = MaterialTheme.typography.titleMedium)
                 }
 
                 if (attempts > 0 && (showError || lockedOut)) {
-                    Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.height(20.dp))
                     Text(
                         text = currentQuote,
-                        color = if (!lockedOut) errorColor else MaterialTheme.colorScheme.onSurface,
+                        color = if (!lockedOut) errorColor else MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 15.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier
                             .dropTransform(quoteDrop.value, quoteRotation.value)
                             .padding(horizontal = 8.dp)
@@ -371,7 +355,6 @@ fun WrongPasswordScreen(
                 }
             }
 
-            // 2026 update: The CTA now drops in as a sleek floating "Dynamic Island" style surface
             AnimatedVisibility(
                 visible = lockedOut,
                 modifier = Modifier.align(Alignment.TopCenter)
@@ -380,35 +363,32 @@ fun WrongPasswordScreen(
                     modifier = Modifier
                         .padding(top = 48.dp, start = 24.dp, end = 24.dp)
                         .fillMaxWidth(),
-                    shape = RoundedCornerShape(32.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
-                    tonalElevation = 8.dp,
-                    shadowElevation = 12.dp
+                    shape = RoundedCornerShape(28.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.padding(vertical = 24.dp, horizontal = 16.dp)
+                        modifier = Modifier.padding(24.dp)
                     ) {
                         Text(
                             text = "Too many attempts",
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
                             textAlign = TextAlign.Center
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(
                             text = "Please restore your password via email.",
                             style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.alpha(0.8f)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
                         )
                         Spacer(Modifier.height(20.dp))
 
-                        FilledTonalButton(
+                        Button(
                             onClick = { onNavigationEvent(AppScreen.PasskeyRegistration) },
-                            modifier = Modifier.height(48.dp),
-                            shape = RoundedCornerShape(16.dp)
+                            modifier = Modifier.height(48.dp)
                         ) {
-                            Text("Restore via email", fontWeight = FontWeight.SemiBold)
+                            Text("Restore via email")
                         }
                     }
                 }

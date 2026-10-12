@@ -38,6 +38,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Android
 import androidx.compose.material.icons.rounded.Fingerprint
@@ -55,10 +56,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -339,17 +343,17 @@ private fun LockUp() {
  * OS creation cue placed behind the private key.
  *
  * Draws a pulsing circular ring with gaps and three badges (Android, fingerprint,
- * and verified) distributed along the ring.
+ * and verified) distributed along the ring, each sitting on a soft tonal circle.
  *
  * @param badgeAnglesUp angles in degrees (0° is up, increasing clockwise) for badge placement.
  * @param gapDeg angular gap around each badge where the ring is not drawn.
- * @param iconSize size of each badge icon.
+ * @param iconSize size of each badge icon; its backing circle is twice this size.
  */
 @Composable
 private fun OsMakerCue(
     badgeAnglesUp: List<Float> = listOf(-135f, 0f, 120f),
     gapDeg: Float = 18f,
-    iconSize: Dp = 52.dp
+    iconSize: Dp = 24.dp
 ) {
     val pulse = rememberInfiniteTransition(label = "osPulse")
     val ringAlpha by pulse.animateFloat(
@@ -362,7 +366,7 @@ private fun OsMakerCue(
         label = "osRingAlpha"
     )
 
-    val ringStroke = 7f
+    val ringStroke = 2.dp
 
     fun up0ToCanvasStart(deg: Float): Float = deg - 90f
 
@@ -392,7 +396,7 @@ private fun OsMakerCue(
 
                 if (sweep > 0f) {
                     drawArc(
-                        color = primaryColor.copy(alpha = 0.12f * ringAlpha),
+                        color = primaryColor.copy(alpha = 0.16f * ringAlpha),
                         startAngle = up0ToCanvasStart(startUp),
                         sweepAngle = sweep,
                         useCenter = false,
@@ -404,13 +408,14 @@ private fun OsMakerCue(
                             ringRadiusPx * 2f,
                             ringRadiusPx * 2f
                         ),
-                        style = Stroke(width = ringStroke)
+                        style = Stroke(width = ringStroke.toPx(), cap = StrokeCap.Round)
                     )
                 }
             }
         }
 
-        val tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.30f)
+        val tint = MaterialTheme.colorScheme.onSurfaceVariant
+        val badgeColor = MaterialTheme.colorScheme.surfaceContainerHigh
 
         @Composable
         fun Place(angleUp: Float, content: @Composable () -> Unit) {
@@ -424,6 +429,9 @@ private fun OsMakerCue(
                         translationY = dy
                     }
                     .align(Alignment.Center)
+                    .size(iconSize * 2)
+                    .background(badgeColor, CircleShape),
+                contentAlignment = Alignment.Center
             ) {
                 content()
             }
@@ -461,8 +469,8 @@ private fun OsMakerCue(
 /**
  * Math cue placed behind the public key (lock).
  *
- * Draws a faint grid and a set of math symbols around the center,
- * leaving an empty area where the lock icon is rendered.
+ * Draws a faint grid that fades out towards its edges and a set of math symbols
+ * around the center, leaving an empty area where the lock icon is rendered.
  */
 @Composable
 private fun MathMakerCue() {
@@ -477,14 +485,29 @@ private fun MathMakerCue() {
         label = "mathAlpha"
     )
 
+    val gridColor = MaterialTheme.colorScheme.onSurface
+    val symbolColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val symbolTypeface = remember {
+        android.graphics.Typeface.create("sans-serif-light", android.graphics.Typeface.NORMAL)
+    }
+
     Canvas(Modifier.size(240.dp)) {
         val center = androidx.compose.ui.geometry.Offset(size.width / 2f, size.height / 2f)
         val minDim = size.minDimension
         val step = minDim / 12f
 
+        val gridBrush = Brush.radialGradient(
+            0f to gridColor.copy(alpha = 0.14f),
+            0.5f to gridColor.copy(alpha = 0.10f),
+            1f to gridColor.copy(alpha = 0f),
+            center = center,
+            radius = minDim / 2f
+        )
+        val gridStroke = 1.dp.toPx()
+
         repeat(13) { x ->
             drawLine(
-                color = Color.Black.copy(alpha = 0.05f),
+                brush = gridBrush,
                 start = androidx.compose.ui.geometry.Offset(
                     center.x - 6 * step + x * step,
                     center.y - 6 * step
@@ -493,13 +516,13 @@ private fun MathMakerCue() {
                     center.x - 6 * step + x * step,
                     center.y + 6 * step
                 ),
-                strokeWidth = 2f
+                strokeWidth = gridStroke
             )
         }
 
         repeat(13) { y ->
             drawLine(
-                color = Color.Black.copy(alpha = 0.05f),
+                brush = gridBrush,
                 start = androidx.compose.ui.geometry.Offset(
                     center.x - 6 * step,
                     center.y - 6 * step + y * step
@@ -508,7 +531,7 @@ private fun MathMakerCue() {
                     center.x + 6 * step,
                     center.y - 6 * step + y * step
                 ),
-                strokeWidth = 2f
+                strokeWidth = gridStroke
             )
         }
 
@@ -521,22 +544,25 @@ private fun MathMakerCue() {
 
         val big = android.graphics.Paint().apply {
             isAntiAlias = true
+            typeface = symbolTypeface
             textSize = minDim * 0.22f
-            color = android.graphics.Color.argb((190 * alphaFactor).toInt(), 0, 0, 0)
+            color = symbolColor.copy(alpha = 190 / 255f * alphaFactor).toArgb()
             textAlign = android.graphics.Paint.Align.CENTER
         }
 
         val medium = android.graphics.Paint().apply {
             isAntiAlias = true
+            typeface = symbolTypeface
             textSize = minDim * 0.16f
-            color = android.graphics.Color.argb((165 * alphaFactor).toInt(), 0, 0, 0)
+            color = symbolColor.copy(alpha = 165 / 255f * alphaFactor).toArgb()
             textAlign = android.graphics.Paint.Align.CENTER
         }
 
         val small = android.graphics.Paint().apply {
             isAntiAlias = true
+            typeface = symbolTypeface
             textSize = minDim * 0.13f
-            color = android.graphics.Color.argb((145 * alphaFactor).toInt(), 0, 0, 0)
+            color = symbolColor.copy(alpha = 145 / 255f * alphaFactor).toArgb()
             textAlign = android.graphics.Paint.Align.CENTER
         }
 

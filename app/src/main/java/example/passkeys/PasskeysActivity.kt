@@ -33,6 +33,7 @@ import example.passkeys.mvi.PasskeysEffect
 import example.passkeys.mvi.PasskeysIntent
 import example.passkeys.mvi.PasskeysState
 import example.passkeys.mvi.PasskeysViewModel
+import kotlinx.coroutines.CancellationException
 
 @AndroidEntryPoint
 class PasskeysActivity : ComponentActivity() {
@@ -52,42 +53,48 @@ class PasskeysActivity : ComponentActivity() {
 
             LaunchedEffect(Unit) {
                 viewModel.effects.collect { effect ->
-                    when (effect) {
-                        is PasskeysEffect.LaunchCreate -> {
-                            val result = passkeysManager.register(
-                                activity = activity,
-                                requestJson = effect.json.value
-                            )
-                            result
-                                .onSuccess { response ->
-                                    viewModel.onIntent(
-                                        PasskeysIntent.RegistrationDone(response.value)
-                                    )
-                                }
-                                .onFailure { throwable ->
-                                    val error = (throwable as? PasskeyException)?.error
-                                        ?: PasskeyError.OperationFailed(throwable)
-                                    viewModel.onIntent(PasskeysIntent.Failed(error))
-                                }
-                        }
+                    try {
+                        when (effect) {
+                            is PasskeysEffect.LaunchCreate -> {
+                                val result = passkeysManager.register(
+                                    activity = activity,
+                                    requestJson = effect.json.value
+                                )
+                                result
+                                    .onSuccess { response ->
+                                        viewModel.onIntent(
+                                            PasskeysIntent.RegistrationDone(response.value)
+                                        )
+                                    }
+                                    .onFailure { throwable ->
+                                        val error = (throwable as? PasskeyException)?.error
+                                            ?: PasskeyError.OperationFailed(throwable)
+                                        viewModel.onIntent(PasskeysIntent.Failed(error))
+                                    }
+                            }
 
-                        is PasskeysEffect.LaunchGet -> {
-                            val result = passkeysManager.signIn(
-                                activity = activity,
-                                requestJson = effect.json.value
-                            )
-                            result
-                                .onSuccess { response ->
-                                    viewModel.onIntent(
-                                        PasskeysIntent.AuthenticationDone(response.value)
-                                    )
-                                }
-                                .onFailure { throwable ->
-                                    val error = (throwable as? PasskeyException)?.error
-                                        ?: PasskeyError.OperationFailed(throwable)
-                                    viewModel.onIntent(PasskeysIntent.Failed(error))
-                                }
+                            is PasskeysEffect.LaunchGet -> {
+                                val result = passkeysManager.signIn(
+                                    activity = activity,
+                                    requestJson = effect.json.value
+                                )
+                                result
+                                    .onSuccess { response ->
+                                        viewModel.onIntent(
+                                            PasskeysIntent.AuthenticationDone(response.value)
+                                        )
+                                    }
+                                    .onFailure { throwable ->
+                                        val error = (throwable as? PasskeyException)?.error
+                                            ?: PasskeyError.OperationFailed(throwable)
+                                        viewModel.onIntent(PasskeysIntent.Failed(error))
+                                    }
+                            }
                         }
+                    } catch (e: CancellationException) {
+                        // The Activity went away while the sheet was up.
+                        viewModel.onIntent(PasskeysIntent.Canceled)
+                        throw e
                     }
                 }
             }

@@ -49,6 +49,7 @@ internal class PasskeysViewModel @Inject constructor(
             is PasskeysIntent.RegistrationDone -> onRegistrationDone(intent.responseJson)
             is PasskeysIntent.AuthenticationDone -> onAuthenticationDone(intent.responseJson)
             is PasskeysIntent.Failed -> onFailed(intent.error)
+            PasskeysIntent.Canceled -> onCanceled()
         }
     }
 
@@ -120,5 +121,9 @@ internal class PasskeysViewModel @Inject constructor(
 
     private fun onFailed(error: PasskeyError) {
         _state.update { it.copy(loading = false, error = error) }
+    }
+
+    private fun onCanceled() {
+        _state.update { it.copy(loading = false, error = null) }
     }
 }

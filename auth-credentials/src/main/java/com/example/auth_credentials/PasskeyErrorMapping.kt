@@ -25,6 +25,7 @@ import androidx.credentials.exceptions.GetCredentialProviderConfigurationExcepti
 import androidx.credentials.exceptions.NoCredentialException
 import androidx.credentials.exceptions.publickeycredential.CreatePublicKeyCredentialDomException
 import androidx.credentials.exceptions.publickeycredential.GetPublicKeyCredentialDomException
+import kotlinx.coroutines.CancellationException
 
 /**
  * Converts a [Result] that may contain any throwable into a [Result] that contains a
@@ -37,12 +38,17 @@ import androidx.credentials.exceptions.publickeycredential.GetPublicKeyCredentia
  * Behavior:
  * - Success values are passed through unchanged.
  * - Failures are transformed using the provided [map] function.
+ * - A [CancellationException] is rethrown, so a canceled coroutine stays canceled
+ *   instead of being reported as a failure.
  */
 internal inline fun <T> Result<T>.mapToDomainError(
     crossinline map: (Throwable) -> PasskeyException
 ): Result<T> = fold(
     onSuccess = { Result.success(it) },
-    onFailure = { t -> Result.failure(map(t)) }
+    onFailure = { t ->
+        if (t is CancellationException) throw t
+        Result.failure(map(t))
+    }
 )
 
 /**

@@ -141,6 +141,16 @@ class PasskeysViewModelTest {
         assertEquals(PasskeyError.CanceledByUser, viewModel.state.value.error)
     }
 
+    @Test
+    fun `a canceled passkey launch stops loading without an error`() = runTest {
+        viewModel.onIntent(PasskeysIntent.BeginRegistration("user-1"))
+
+        viewModel.onIntent(PasskeysIntent.Canceled)
+
+        assertFalse(viewModel.state.value.loading)
+        assertNull(viewModel.state.value.error)
+    }
+
     private class FakePasskeysRepository : PasskeysRepository {
         var failure: Throwable? = null
         var registrationOptionsRequestedFor: String? = null

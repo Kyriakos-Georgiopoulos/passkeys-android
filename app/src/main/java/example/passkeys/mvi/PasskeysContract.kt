@@ -26,6 +26,7 @@ internal sealed interface PasskeysIntent {
     data class RegistrationDone(val responseJson: String) : PasskeysIntent
     data class AuthenticationDone(val responseJson: String) : PasskeysIntent
     data class Failed(val error: PasskeyError) : PasskeysIntent
+    data object Canceled : PasskeysIntent
 }
 
 internal data class PasskeysState(

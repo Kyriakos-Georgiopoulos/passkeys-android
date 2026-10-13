@@ -9,5 +9,7 @@ import com.example.domain.model.RegistrationOptionsJson
  */
 interface PasskeysRepository {
     suspend fun getRegistrationOptions(userId: String): RegistrationOptionsJson
+    suspend fun verifyRegistration(responseJson: String)
     suspend fun getAuthenticationOptions(usernameOrEmail: String): AuthenticationOptionsJson
+    suspend fun verifyAuthentication(responseJson: String)
 }

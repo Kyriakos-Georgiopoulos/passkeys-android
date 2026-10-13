@@ -87,11 +87,35 @@ internal class PasskeysViewModel @Inject constructor(
     }
 
     private fun onRegistrationDone(responseJson: String) {
-        _state.update { it.copy(loading = false, error = null) }
+        viewModelScope.launch {
+            try {
+                repository.verifyRegistration(responseJson)
+                _state.update { it.copy(loading = false, error = null) }
+            } catch (t: Throwable) {
+                _state.update {
+                    it.copy(
+                        loading = false,
+                        error = PasskeyError.OperationFailed(t)
+                    )
+                }
+            }
+        }
     }
 
     private fun onAuthenticationDone(responseJson: String) {
-        _state.update { it.copy(loading = false, error = null) }
+        viewModelScope.launch {
+            try {
+                repository.verifyAuthentication(responseJson)
+                _state.update { it.copy(loading = false, error = null) }
+            } catch (t: Throwable) {
+                _state.update {
+                    it.copy(
+                        loading = false,
+                        error = PasskeyError.OperationFailed(t)
+                    )
+                }
+            }
+        }
     }
 
     private fun onFailed(error: PasskeyError) {

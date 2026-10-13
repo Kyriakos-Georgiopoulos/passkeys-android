@@ -6,7 +6,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.example.navigation.AppComposeNavigator
 import com.example.navigation.AppScreen
-import example.PasskeyRegistrationMockScreen
 import example.faq.PasskeysFaq
 import example.passkeys.PasskeysActivity
 import example.password.WrongPasswordScreen
@@ -40,17 +39,10 @@ fun NavGraphBuilder.appNavigation(
     composable(
         route = AppScreen.FAQ.name,
     ) {
-        PasskeysFaq { screen ->
-            composeNavigator.navigate(screen.name)
-        }
-    }
-    composable(
-        route = AppScreen.PassKeysMockDemo.name,
-    ) {
         val context = LocalContext.current
 
-        PasskeyRegistrationMockScreen(
-            onOpenPasskeysActivity = {
+        PasskeysFaq(
+            onFinished = {
                 val intent = Intent(context, PasskeysActivity::class.java)
                 context.startActivity(intent)
             }

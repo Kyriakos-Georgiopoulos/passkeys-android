@@ -71,7 +71,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import com.example.navigation.AppScreen
 import kotlinx.coroutines.launch
 import java.util.Random
 import kotlin.math.abs
@@ -283,17 +282,17 @@ private fun VividBackdrop() {
  * Passkeys FAQ screen that shows a stacked deck of FAQ cards.
  *
  * The user can swipe away cards one by one. Once the last card is
- * dismissed, [onNavigationEvent] is invoked so the caller can navigate to
- * the next screen.
+ * dismissed, [onFinished] is invoked so the caller can move on to
+ * the real passkeys demo.
  *
  * @param modifier Modifier applied to the root scaffold.
- * @param onNavigationEvent Callback invoked after the last card is removed.
+ * @param onFinished Callback invoked after the last card is removed.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PasskeysFaq(
     modifier: Modifier = Modifier,
-    onNavigationEvent: (AppScreen) -> Unit = {}
+    onFinished: () -> Unit = {}
 ) {
     Box(Modifier.fillMaxSize()) {
         VividBackdrop()
@@ -328,9 +327,7 @@ fun PasskeysFaq(
             ) {
                 FaqDeck(
                     faqs = Faqs,
-                    onFinished = {
-                        onNavigationEvent(AppScreen.PassKeysMockDemo)
-                    },
+                    onFinished = onFinished,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(top = 64.dp)

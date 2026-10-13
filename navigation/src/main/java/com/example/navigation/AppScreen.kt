@@ -25,10 +25,6 @@ sealed class AppScreen(
     data object FAQ : AppScreen(
         route = "faq",
     )
-
-    data object PassKeysMockDemo : AppScreen(
-        route = "passkeys_mock_demo",
-    )
 }
 
 /**

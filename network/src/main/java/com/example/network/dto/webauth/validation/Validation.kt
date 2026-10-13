@@ -4,7 +4,6 @@ import com.example.network.dto.webauth.CreationOptions
 import com.example.network.dto.webauth.CredDescriptor
 import com.example.network.dto.webauth.Param
 import com.example.network.dto.webauth.RequestOptions
-import com.example.network.dto.webauth.Rp
 
 internal object WebAuthnRules {
     val VALID_UV = setOf("required", "preferred", "discouraged")
@@ -50,11 +49,10 @@ internal fun List<Param?>?.prunedParamsOrDefault(): List<Param?> {
 /**
  * Validate & sanitize LOGIN ("get") options.
  * - Ensures publicKey & challenge present and Base64URL.
- * - Pins rpId to expectedRpId.
  * - Prunes invalid allowCredentials items.
  * - Bounds timeout if present (1s..120s).
  */
-fun RequestOptions.sanitized(expectedRpId: String): RequestOptions {
+fun RequestOptions.sanitized(): RequestOptions {
     val pk = publicKey ?: error("Missing 'publicKey'")
 
     val challenge = pk.challenge ?: error("Missing 'challenge'")
@@ -72,7 +70,6 @@ fun RequestOptions.sanitized(expectedRpId: String): RequestOptions {
 
     return copy(
         publicKey = pk.copy(
-            rpId = expectedRpId,
             allowCredentials = cleanedAllow
         )
     )
@@ -80,17 +77,15 @@ fun RequestOptions.sanitized(expectedRpId: String): RequestOptions {
 
 /**
  * Validate & sanitize REGISTRATION ("create") options.
- * - Ensures publicKey, rp/user present; pins rp.id to expectedRpId.
+ * - Ensures publicKey and user present.
  * - Validates Base64URL user.id & challenge; requires user.name/displayName.
  * - Prunes/normalizes pubKeyCredParams (defaults to ES256 if none valid).
  * - Prunes invalid excludeCredentials.
  * - Validates authenticatorSelection enums.
  * - Bounds timeout if present (1s..120s).
  */
-fun CreationOptions.sanitized(expectedRpId: String): CreationOptions {
+fun CreationOptions.sanitized(): CreationOptions {
     val pk = publicKey ?: error("Missing 'publicKey'")
-
-    val fixedRp = (pk.rp ?: Rp()).copy(id = expectedRpId)
 
     val user = pk.user ?: error("Missing 'user'")
     require(!user.id.isNullOrBlank() && user.id.isBase64Url()) { "user.id must be Base64URL" }
@@ -121,7 +116,6 @@ fun CreationOptions.sanitized(expectedRpId: String): CreationOptions {
 
     return copy(
         publicKey = pk.copy(
-            rp = fixedRp,
             pubKeyCredParams = normalizedParams,
             excludeCredentials = cleanedExclude
         )

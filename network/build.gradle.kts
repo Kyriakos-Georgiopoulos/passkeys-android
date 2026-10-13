@@ -21,7 +21,6 @@ android {
         consumerProguardFiles("consumer-rules.pro")
 
         buildConfigField("String", "API_BASE_URL", "\"https://api.example.com/\"")
-        buildConfigField("String", "WEBAUTHN_RP_ID", "\"example.com\"")
     }
 
     buildTypes {

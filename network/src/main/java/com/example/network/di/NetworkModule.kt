@@ -43,11 +43,6 @@ internal object NetworkModule {
 
     @Provides
     @Singleton
-    @Named("webauthnRpId")
-    fun provideRpId(): String = BuildConfig.WEBAUTHN_RP_ID
-
-    @Provides
-    @Singleton
     fun provideRetrofit(
         @Named("baseUrl") baseUrl: String,
         client: OkHttpClient,

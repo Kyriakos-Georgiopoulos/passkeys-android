@@ -61,6 +61,9 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
 
+    // WebView passkeys (WebSettingsCompat.setWebAuthenticationSupport)
+    implementation(libs.androidx.webkit)
+
     // Coroutines
     implementation(libs.kotlinx.coroutines)
 

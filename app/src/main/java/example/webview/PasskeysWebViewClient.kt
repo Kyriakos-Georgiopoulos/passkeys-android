@@ -22,7 +22,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 
 class PasskeysWebViewClient(
-    private val allowedOrigin: String
+    private val allowedOrigin: String?
 ) : WebViewClient() {
 
     override fun shouldOverrideUrlLoading(

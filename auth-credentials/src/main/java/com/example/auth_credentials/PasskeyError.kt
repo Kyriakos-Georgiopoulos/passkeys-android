@@ -47,14 +47,3 @@ class PasskeyException(val error: PasskeyError) : RuntimeException(
     },
     (error as? PasskeyError.OperationFailed)?.cause
 )
-
-inline fun <R> Result<PublicKeyResponseJson>.foldRich(
-    onSuccess: (PublicKeyResponseJson) -> R,
-    onError: (PasskeyError) -> R
-): R = fold(onSuccess) { throwable ->
-    val pe = throwable as? PasskeyException
-    onError(pe?.error ?: PasskeyError.OperationFailed(throwable))
-}
-
-fun Result<PublicKeyResponseJson>.errorOrNull(): PasskeyError? =
-    exceptionOrNull()?.let { (it as? PasskeyException)?.error ?: PasskeyError.OperationFailed(it) }

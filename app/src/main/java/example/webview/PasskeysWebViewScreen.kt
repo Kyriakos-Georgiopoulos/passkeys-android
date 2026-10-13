@@ -18,39 +18,37 @@ package example.webview
 
 // example.passkeys.web.PasskeysWebViewScreen
 
-import android.app.Activity
 import android.webkit.WebSettings
 import android.webkit.WebView
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.auth_credentials.PasskeyError
-import com.example.auth_credentials.PasskeysManager
-import example.webview.mvi.PasskeysWebViewEffect
-import example.webview.mvi.PasskeysWebViewIntent
+import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewFeature
 
+/**
+ * Shows a web page that creates and uses passkeys with the standard
+ * `navigator.credentials` API, the same code that runs in a browser.
+ *
+ * The page talks to the server itself. The app only switches WebAuthn on
+ * for the WebView, so the request reaches the device's passkey provider.
+ *
+ * @param url Page to load. Navigation stays on this page's origin.
+ * @param modifier Modifier applied to the root container.
+ */
 @Composable
 internal fun PasskeysWebViewScreen(
-    passkeysManager: PasskeysManager,
-    allowedOrigin: String,
-    viewModel: PasskeysWebViewViewModel = hiltViewModel()
+    url: String,
+    modifier: Modifier = Modifier
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-    val activity = context as Activity
+    var passkeysEnabled by remember { mutableStateOf(true) }
 
-    var webView by remember { mutableStateOf<WebView?>(null) }
-
-    Box(Modifier.fillMaxSize()) {
+    Box(modifier.fillMaxSize()) {
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { ctx ->
@@ -59,111 +57,43 @@ internal fun PasskeysWebViewScreen(
                     settings.domStorageEnabled = true
                     settings.cacheMode = WebSettings.LOAD_DEFAULT
 
-                    webViewClient = PasskeysWebViewClient(allowedOrigin)
+                    webViewClient = PasskeysWebViewClient(url.toOrigin())
 
-                    addJavascriptInterface(
-                        PasskeysJsBridge(
-                            allowedOriginProvider = { url?.toOrigin() == allowedOrigin },
-                            onIntent = viewModel::onIntent
-                        ),
-                        "AndroidPasskeys"
-                    )
+                    passkeysEnabled = enablePasskeys()
 
-                    webView = this
-                    loadUrl(allowedOrigin)
+                    loadUrl(url)
                 }
             }
         )
 
-        if (state.loading) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center)
-            )
-        }
-
-        state.lastError?.let { error ->
+        if (!passkeysEnabled) {
             Text(
-                text = error.userMessageForWeb(),
+                text = "This WebView does not support passkeys.",
                 modifier = Modifier.align(Alignment.BottomCenter),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.error
             )
         }
     }
-
-    // Handle side-effects
-    LaunchedEffect(Unit) {
-        viewModel.effects.collect { effect ->
-            val wv = webView ?: return@collect
-
-            when (effect) {
-                is PasskeysWebViewEffect.PerformRegistration -> {
-                    val result = passkeysManager.register(
-                        activity = activity,
-                        requestJson = effect.requestJson
-                    )
-                    viewModel.onIntent(
-                        PasskeysWebViewIntent.RegistrationResult(
-                            callbackId = effect.callbackId,
-                            result = result
-                        )
-                    )
-                }
-
-                is PasskeysWebViewEffect.PerformSignIn -> {
-                    val result = passkeysManager.signIn(
-                        activity = activity,
-                        requestJson = effect.requestJson
-                    )
-                    viewModel.onIntent(
-                        PasskeysWebViewIntent.SignInResult(
-                            callbackId = effect.callbackId,
-                            result = result
-                        )
-                    )
-                }
-
-                is PasskeysWebViewEffect.SendSuccess -> {
-                    val safeJson = effect.responseJson.escapeForJsString()
-                    val js = """
-                        window.Passkeys && window.Passkeys.onSuccess &&
-                        window.Passkeys.onSuccess("${effect.callbackId}", $safeJson);
-                    """.trimIndent()
-                    wv.evaluateJavascript(js, null)
-                }
-
-                is PasskeysWebViewEffect.SendError -> {
-                    val code = effect.error.toJsCode()
-                    val msg = effect.message.escapeForJsString()
-                    val js = """
-                        window.Passkeys && window.Passkeys.onError &&
-                        window.Passkeys.onError("${effect.callbackId}", "$code", $msg);
-                    """.trimIndent()
-                    wv.evaluateJavascript(js, null)
-                }
-            }
-        }
-    }
 }
 
-private fun PasskeyError.toJsCode(): String = when (this) {
-    PasskeyError.Unsupported -> "UNSUPPORTED"
-    PasskeyError.NoCredentialAvailable -> "NO_CREDENTIAL"
-    PasskeyError.ProviderUnavailable -> "PROVIDER_UNAVAILABLE"
-    PasskeyError.CanceledByUser -> "CANCELED"
-    is PasskeyError.OperationFailed -> "OPERATION_FAILED"
-}
+/**
+ * Switches WebAuthn on for pages in this WebView, on behalf of this app.
+ *
+ * WebAuthn is off in a WebView by default. The app must be linked to the
+ * page's domain with Digital Asset Links for the request to be accepted.
+ *
+ * @return `true` if the installed WebView has the feature and kept the setting.
+ */
+private fun WebView.enablePasskeys(): Boolean {
+    if (!WebViewFeature.isFeatureSupported(WebViewFeature.WEB_AUTHENTICATION)) return false
 
-private fun String.escapeForJsString(): String =
-    replace("\\", "\\\\")
-        .replace("\"", "\\\"")
-        .replace("\n", "\\n")
-        .replace("\r", "\\r")
+    WebSettingsCompat.setWebAuthenticationSupport(
+        settings,
+        WebSettingsCompat.WEB_AUTHENTICATION_SUPPORT_FOR_APP
+    )
 
-private fun PasskeyError.userMessageForWeb(): String = when (this) {
-    PasskeyError.Unsupported -> "Passkeys are not supported on this device."
-    PasskeyError.NoCredentialAvailable -> "No passkey available for this request."
-    PasskeyError.ProviderUnavailable -> "Credential provider unavailable."
-    PasskeyError.CanceledByUser -> "You canceled the operation."
-    is PasskeyError.OperationFailed -> "Passkey operation failed."
+    // The WebView can refuse the setting, so read it back.
+    return WebSettingsCompat.getWebAuthenticationSupport(settings) ==
+            WebSettingsCompat.WEB_AUTHENTICATION_SUPPORT_FOR_APP
 }
